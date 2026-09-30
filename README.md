@@ -54,7 +54,59 @@ The robot is controlled from a browser page over Wi-Fi, with the live camera fee
 
 **Version 1: hardcoded timing (before the February PDR).** The first working software ran each jump on fixed timers. It jumped, and it was the version that got us through the February PDR (Preliminary Design Review), the meeting that put us on the path to Houston. But it was hardcoded, and we wanted a design that responded to the mechanism instead of running on timers alone.
 
-**Version 2: limit-switch trigger.** Over the following months I designed a trigger circuit with an electrical engineer mentor. A button acted as a limit switch: the motor wound until the platform pressed the button at the bottom of its travel, and the code then stopped the motor, blinked the lights, and reversed it to release the mechanism. Unlike the timed version, this one reacted to where the mechanism actually was. The circuit design worked, but during testing an electrical hardware problem showed up that we never fully diagnosed. My best guess is that the motor's power draw interfered with the trigger. The code is on the [`button-trigger` branch](https://github.com/seandhaverkamp77-gif/TARS-lunar-jumping-robot/blob/button-trigger/button-trigger-snippet.cpp) (an excerpt of the command handler).
+**Version 2: limit-switch trigger. Over the following months I designed a trigger circuit with an electrical engineer mentor. A button acted as a limit switch: the motor wound until the platform pressed it at the bottom of its travel, then the code stopped the motor, blinked the lights, and reversed it to release the mechanism. Unlike the timed version, this one reacted to where the mechanism actually was. The circuit design worked, but testing revealed an electrical hardware problem we never fully diagnosed. My best guess is that the motor's power draw interfered with the trigger.
+
+**Version 2: limit-switch trigger.** Over the following months I designed a trigger circuit with an electrical engineer mentor. A button acted as a limit switch: the motor wound until the platform pressed the button at the bottom of its travel, and the code then stopped the motor, blinked the lights, and reversed it to release the mechanism. Unlike the timed version, this one reacted to where the mechanism actually was. The circuit design worked, but during testing an electrical hardware problem showed up that we never fully diagnosed. My best guess is that the motor's power draw interfered with the trigger.
+
+<details>
+<summary>View the limit-switch loop (Version 2, not used in the final robot)</summary>
+
+This is the `forward` command handler from that version. It runs one jump per command. `BUTTON_PIN` is the limit switch input, defined elsewhere in the sketch.
+
+```cpp
+if (!strcmp(variable, "forward")) {
+
+    int count = 0;   // releases completed; the loop ends after 1
+
+    while (count < 1){
+      // Button reads LOW when the platform presses it
+      while (digitalRead(BUTTON_PIN) == LOW){
+        // Mechanism fully wound: stop the motor
+        digitalWrite(MOTOR_1_PIN_1, 0);
+        digitalWrite(MOTOR_1_PIN_2, 0);
+
+        // Blink the NeoPixels 10 times as a warning before the release
+        for (int i = 0; i < 10; i++){
+          blink();
+        }
+
+        Serial.println("Backward");
+
+        // Reverse the motor to release the mechanism (the jump)
+        digitalWrite(MOTOR_1_PIN_1, 0);
+        digitalWrite(MOTOR_1_PIN_2, 1);
+
+        delay(3000);   // reverse for 3 seconds
+
+        count++;       // one release done, so the outer loop ends
+      }
+
+      // Button not pressed yet: keep winding (motor forward)
+      Serial.println("Forward");
+      digitalWrite(MOTOR_1_PIN_1, 1);
+      digitalWrite(MOTOR_1_PIN_2, 0);
+    }
+
+    Serial.println("Stop");
+
+    // Motor off after the release
+    digitalWrite(MOTOR_1_PIN_1, 0);
+    digitalWrite(MOTOR_1_PIN_2, 0);
+
+}
+```
+
+</details>
 
 **Version 3: back to the timed sequence.** About a week before Johnson Space Center, with no time left to track the problem down, we decided to go back to the timed sequence. We had very little testing time to get it working again, and it barely came together, but it worked. That's the version on `main`, and it's what completed repeated autonomous jumps in front of NASA.
 
