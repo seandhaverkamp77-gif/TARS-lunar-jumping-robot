@@ -6,7 +6,7 @@ Software for TARS, a single-motor jumping robot built for NASA HUNCH (2025-2026)
 
 <!-- TODO: add a photo or GIF of TARS jumping here -->
 
-**[Jump straight to the autonomous sequence in the code]((https://github.com/seandhaverkamp77-gif/TARS-lunar-jumping-robot/blob/COMMIT-ID/main-source-code/main-source-code.ino#L356-L405))**
+**[Jump straight to the autonomous sequence in the code](https://github.com/seandhaverkamp77-gif/TARS-lunar-jumping-robot/blob/main/main-source-code#L356-L405)**
 
 ## Overview
 
