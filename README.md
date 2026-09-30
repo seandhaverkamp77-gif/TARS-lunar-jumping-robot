@@ -16,7 +16,7 @@ Built by a 4-person team at Green Mountain High School. TARS was invited to John
 
 ## My Role
 
-Software lead. I was responsible for the onboard control system running on the ESP32-CAM.
+Software lead. I was responsible for the onboard control system running on the ESP32-CAM, and I designed the trigger circuit for the button version with an electrical engineer mentor.
 
 ## How the Jump Sequence Works
 
@@ -35,6 +35,10 @@ flowchart TD
 
 It is a hardcoded, open-loop sequence: fixed timers, no sensor feedback. Once triggered, it runs with no operator input.
 
+## Why One Motor
+
+TARS uses a single motor for both winding and release, for simplicity. The motor winds a spool, and while it winds, the mechanism holds the string at the bottom and doesn't let go. Reversing the motor releases the spool completely, and the stored energy launches the robot. Because release is just a direction change, there's no second motor or separate release actuator to build, wire, or fail.
+
 ### Control page
 
 The robot is controlled from a browser page over Wi-Fi, with the live camera feed above the buttons:
@@ -46,6 +50,16 @@ The robot is controlled from a browser page over Wi-Fi, with the live camera fee
 | Left | Releases the mechanism's tension manually (hold to run) |
 | Stop | Turns the motor off |
 
+## Design History: Hardcoded, Limit Switch, and Back Again
+
+**Version 1: hardcoded timing (before the February PDR).** The first working software ran each jump on fixed timers. It jumped, and it was the version that got us through the February PDR (Preliminary Design Review), the meeting that put us on the path to Houston. But it was hardcoded, and we wanted a design that responded to the mechanism instead of running on timers alone.
+
+**Version 2: limit-switch trigger.** Over the following months I designed a trigger circuit with an electrical engineer mentor. A button acted as a limit switch: the motor wound until the platform pressed the button at the bottom of its travel, and the code then stopped the motor, blinked the lights, and reversed it to release the mechanism. Unlike the timed version, this one reacted to where the mechanism actually was. The circuit design worked, but during testing an electrical hardware problem showed up that we never fully diagnosed. My best guess is that the motor's power draw interfered with the trigger. The code is on the [`button-trigger` branch](https://github.com/seandhaverkamp77-gif/TARS-lunar-jumping-robot/blob/button-trigger/button-trigger-snippet.cpp) (an excerpt of the command handler).
+
+**Version 3: back to the timed sequence.** About a week before Johnson Space Center, with no time left to track the problem down, we decided to go back to the timed sequence. We had very little testing time to get it working again, and it barely came together, but it worked. That's the version on `main`, and it's what completed repeated autonomous jumps in front of NASA.
+
+It wasn't the more elegant design, but it was the one we could rely on.
+
 ## What's Mine vs. Adapted
 
 The camera streaming, web server, and browser control page come from the open-source [ESP32-CAM Remote Controlled Car Robot Web Server](https://randomnerdtutorials.com/esp32-cam-car-robot-web-server/) by Random Nerd Tutorials. I adapted them for a single-motor robot.
@@ -55,23 +69,16 @@ My work:
 - Wrote the wind / release / rest timing around the mechanism and the HUNCH inspection rule
 - Added NeoPixel status feedback (the lights blink before each release)
 - Repurposed the left and right buttons as manual wind and release controls
-- Debugged brownout resets under motor load and redesigned the trigger (see below)
+- Designed a limit-switch release trigger circuit with an electrical engineer mentor, and wrote its code (not used in the final version, see Design History)
 
 Motor 2 is unused on TARS. Its pins and code are leftovers from the original 2-wheel car example.
-
-## From Button to Hardcoded Sequence
-
-The original design used a button to trigger each jump. When the motor reached the bottom of the platform, it signaled the mechanism to release. Under motor load the ESP32 started brownout-resetting: the current draw dropped the voltage enough to reset the board mid-launch. That made the button trigger unreliable right when it mattered.
-
-With the competition deadline close, I replaced the trigger with a pre-programmed timing sequence. It isn't the most elegant fix, but it removed the failure point, and it's what got TARS to repeated autonomous jumps.
-
-<!-- TODO: add what else you changed for the power problem (wiring, supply, etc.) -->
 
 ## Known Limitations
 
 - **"Stop" can't interrupt a running sequence.** The sequence uses `delay()`, which blocks the web server, so a stop command waits until it finishes. A future version could use `millis()`-based timing so a stop command can cut the motor.
 - **Open-loop.** The timing is fixed and doesn't react to sensors.
-- The sketch disables the ESP32 brownout detector. This hides voltage dips instead of fixing them.
+- **The limit-switch hardware problem was never root-caused.** Power draw is my best guess, not a confirmed diagnosis. That version also has no timeout, so if the switch never triggers, the motor keeps winding. It would need a failsafe timer.
+- The sketch disables the ESP32 brownout detector (a line from the original example). This hides voltage dips instead of fixing them.
 
 ## Project Website
 
@@ -84,6 +91,7 @@ Full engineering documentation for TARS (design iterations, testing, electronics
 
 - ESP32-CAM (AI Thinker), C++ / Arduino framework
 - H-bridge motor control
+- Limit switch (button) trigger, in the earlier version
 - NeoPixel LEDs for status feedback
 - Wi-Fi video streaming and a browser-based control page
 
