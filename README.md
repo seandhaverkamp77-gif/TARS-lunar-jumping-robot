@@ -1,67 +1,75 @@
-# TARS-lunar-jumping-robot
-Software for TARS, an autonomous jumping robot built for NASA HUNCH to scout lunar terrain — ESP32-CAM video streaming, motor control, and autonomous launch sequencing in C++.
-# TARS — Autonomous Lunar Terrain-Scouting Robot
+# TARS: Autonomous Lunar Terrain-Scouting Robot
+
+Software for TARS, a single-motor jumping robot built for NASA HUNCH (2025-2026). Runs on an ESP32-CAM in C++ (Arduino): live video streaming, a browser control page, and a timed autonomous jump sequence.
+
+> **NASA HUNCH national finalist.** One of 4 finalist teams (out of 8-10) whose robot completed autonomous, repeated jumps.
+
+<!-- TODO: add a photo or GIF of TARS jumping here -->
+
+**[Jump straight to the autonomous sequence in the code](PASTE-YOUR-PERMALINK-HERE)**
 
 ## Overview
-TARS is an autonomous jumping robot built for NASA HUNCH's Design and Prototype 
-program during the 2025–2026 school year, as part of NASA's Artemis-era Moon to 
-Mars initiative. Astronauts on the lunar surface will need higher-resolution 
-terrain data than the Lunar Reconnaissance Orbiter can currently provide (0.5m/pixel). 
-TARS was designed to be deployed by astronauts to scout the surrounding terrain 
-via a spring-loaded jump mechanism and an onboard camera, gathering close-up 
-imagery to help identify areas of interest for surface missions.
 
-Built by a 4-person team at Green Mountain High School, TARS was selected as one 
-of 8–10 national finalist teams and invited to Johnson Space Center in Houston, TX, 
-to present to NASA astronauts and engineers. Of the finalist teams, only 4 — 
-including ours — successfully got their robot to jump autonomously, and multiple 
-times in a row.
+Astronauts on the lunar surface will need higher-resolution terrain data than the Lunar Reconnaissance Orbiter can provide (0.5 m/pixel). TARS is designed to be deployed by astronauts and jump to scout the surrounding terrain, using a spring-loaded mechanism (compressed carbon fiber rods) and an onboard camera. It was built as part of NASA's Artemis-era Moon to Mars initiative through HUNCH's Design and Prototype program.
+
+Built by a 4-person team at Green Mountain High School. TARS was invited to Johnson Space Center in Houston to present to NASA astronauts and engineers and defend its design in NASA-style design reviews.
 
 ## My Role
-I was the software lead for TARS, responsible for the onboard control system 
-running on an ESP32-CAM.
 
-## What the Code Does
-The ESP32-CAM video streaming and web server code was adapted from a Random 
-Nerd Tutorials open-source project, which I modified and integrated into the 
-rest of the robot's control system, rather than writing the camera/streaming 
-logic from scratch.
+Software lead. I was responsible for the onboard control system on the ESP32-CAM.
 
-- **Live video streaming**: Streams real-time video from the onboard camera over 
-  Wi-Fi to a browser interface, giving operators visual eyes on the terrain 
-  without needing to be physically present. Built on a Random Nerd Tutorials 
-  ESP32-CAM base, customized to fit TARS's control system.
-- **Motor control**: Drives the spring-release mechanism via H-bridge motor 
-  control to trigger each jump. Written from scratch for TARS.
-- **Autonomous launch sequencing**: Runs a timed loop that fires repeated jumps 
-  with no operator input in between, with LED status indicators showing the 
-  robot's current state (idle, arming, launching). Written from scratch for TARS.
+## How the Jump Sequence Works
 
-## The Hard Part: From Button to Hardcoded Sequence
-The original design used a physical button to manually trigger each jump. When the
-motor reached the bottom of the platform, it would signal to release the mechanism
-and cause a fully autonomous jump without a hard coded sequence. Under 
-motor load, the system started brownout-resetting — the current draw from the 
-motor was dropping the voltage enough to reset the ESP32 mid-launch, which meant 
-the button-triggered approach was unreliable right when it mattered most.
+TARS uses one motor and one direction change. Running the motor one way winds the release mechanism, compressing the carbon fiber rods. Reversing it releases the mechanism and launches the robot. The sequence repeats for 3 jumps.
 
-With the competition deadline approaching, I made the call to abandon the 
-button entirely and rewrite the launch logic as a hardcoded, pre-programmed 
-timing sequence instead. Rather than waiting on an external trigger that could 
-fail under load, the robot would run its jumps on a fixed internal timer, 
-removing the failure point altogether. It wasn't the most elegant fix, but it 
-was the reliable one, and it's what got TARS to the four-team club of robots 
-that could actually jump autonomously and repeatedly on demand.
+```mermaid
+flowchart TD
+    A[Browser sends 'forward'] --> B[Wind: motor forward, 77 s<br/>compresses carbon fiber rods]
+    B --> C[Motor stops, NeoPixels blink 10x]
+    C --> D[Release: motor reverse, 10 s<br/>rods spring back, robot jumps]
+    D --> E[Rest 10 s<br/>astronaut inspection, HUNCH rule]
+    E --> F{3 jumps done?}
+    F -- No --> B
+    F -- Yes --> G[Motor off, sequence ends]
+```
+
+It is a hardcoded, open-loop sequence: fixed timers, no sensor feedback. Once triggered, it runs with no operator input. The "forward" button on the control page starts it. That label is left over from the original robot-car example the code was adapted from.
+
+## What's Mine vs. Adapted
+
+The camera streaming, web server, and browser control page come from the open-source ESP32-CAM robot car example by Random Nerd Tutorials. I adapted them for a single-motor robot.
+
+My work:
+- Repurposed the "forward" command into the timed jump sequence
+- Wrote the wind / release / rest timing around the mechanism and the HUNCH inspection rule
+- Added NeoPixel status feedback (blinks before each release)
+- Integrated the code with the robot's mechanism and power system
+
+Motor 2 and the left / right / backward commands are inherited from the original 2-wheel car example. TARS has one motor, so they aren't used in the jump.
+
+## From Button to Hardcoded Sequence
+
+The original design used a button to trigger each jump. When the motor reached the bottom of the platform, it signaled the mechanism to release. Under motor load the ESP32 started brownout-resetting: the current draw dropped the voltage enough to reset the board mid-launch. That made the button trigger unreliable right when it mattered.
+
+With the competition deadline close, I replaced the trigger with a pre-programmed timing sequence. It isn't the most elegant fix, but it removed the failure point, and it's what got TARS to repeated autonomous jumps.
+
+<!-- TODO: add what else you changed for the power problem (wiring, supply, etc.) -->
+
+## Known Limitations
+
+- **"Stop" can't interrupt a running sequence.** The sequence uses `delay()`, which blocks the web server, so a stop command waits until it finishes. A future version could use `millis()`-based timing so a stop command can cut the motor.
+- **Open-loop.** The timing is fixed and doesn't react to sensors.
+- The sketch disables the ESP32 brownout detector. This hides voltage dips instead of fixing them.
 
 ## Tech Stack
-- ESP32-CAM (C++ / Arduino framework)
+
+- ESP32-CAM (AI Thinker), C++ / Arduino framework
 - H-bridge motor control
-- Addressable LEDs (NeoPixel) for status feedback
-- Wi-Fi video streaming + browser-based control interface
+- NeoPixel LEDs for status feedback
+- Wi-Fi video streaming and a browser-based control page
 
 ## Outcome
-- Selected as a NASA HUNCH national finalist (1 of 8–10 teams)
-- One of only 4 finalist teams whose robot successfully jumped autonomously, 
-  multiple times in a row
-- Presented the working prototype and defended design decisions in NASA-style 
-  design reviews at Johnson Space Center
+
+- NASA HUNCH national finalist (1 of 8-10 teams)
+- One of 4 finalist teams whose robot jumped autonomously, multiple times in a row
+- Presented the working prototype and defended design decisions in NASA-style design reviews at Johnson Space Center
