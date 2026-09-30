@@ -4,7 +4,7 @@ Software for TARS, a single-motor jumping robot built for NASA HUNCH (2025-2026)
 
 > **NASA HUNCH national finalist.** One of 4 finalist teams (out of 8-10) whose robot completed autonomous, repeated jumps.
 
-**[Link to video of Robot Jumping]**(https://sites.google.com/d/1SeJM3f2EUF3VswONwCWAmCDG4EWqdbsf/p/1JY7z-DZvMRdhKhXNnNJLwhwzcIemZy05/edit)
+**[Link to video of Robot Jumping](https://sites.google.com/d/1SeJM3f2EUF3VswONwCWAmCDG4EWqdbsf/p/1JY7z-DZvMRdhKhXNnNJLwhwzcIemZy05/edit)**
 
 **[Jump straight to the autonomous sequence in the code](https://github.com/seandhaverkamp77-gif/TARS-lunar-jumping-robot/blob/main/main-source-code#L356-L405)**
 
