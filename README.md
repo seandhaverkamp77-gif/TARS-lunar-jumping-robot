@@ -4,7 +4,7 @@ Software for TARS, a single-motor jumping robot built for NASA HUNCH (2025-2026)
 
 > **NASA HUNCH national finalist.** One of 4 finalist teams (out of 8-10) whose robot completed autonomous, repeated jumps.
 
-[Link to video of Robot Jumping](https://sites.google.com/d/1SeJM3f2EUF3VswONwCWAmCDG4EWqdbsf/p/1JY7z-DZvMRdhKhXNnNJLwhwzcIemZy05/edit)
+**[Link to video of Robot Jumping]**(https://sites.google.com/d/1SeJM3f2EUF3VswONwCWAmCDG4EWqdbsf/p/1JY7z-DZvMRdhKhXNnNJLwhwzcIemZy05/edit)
 
 **[Jump straight to the autonomous sequence in the code](https://github.com/seandhaverkamp77-gif/TARS-lunar-jumping-robot/blob/main/main-source-code#L356-L405)**
 
@@ -54,7 +54,7 @@ The robot is controlled from a browser page over Wi-Fi, with the live camera fee
 
 **Version 1: hardcoded timing (before the February PDR).** The first working software ran each jump on fixed timers. It jumped, and it was the version that got us through the February PDR (Preliminary Design Review), the meeting that put us on the path to Houston. But it was hardcoded, and we wanted a design that responded to the mechanism instead of running on timers alone.
 
-**Version 2: limit-switch trigger. Over the following months I designed a trigger circuit with an electrical engineer mentor. A button acted as a limit switch: the motor wound until the platform pressed it at the bottom of its travel, then the code stopped the motor, blinked the lights, and reversed it to release the mechanism. Unlike the timed version, this one reacted to where the mechanism actually was. The circuit design worked, but testing revealed an electrical hardware problem we never fully diagnosed. My best guess is that the motor's power draw interfered with the trigger.
+**Version 2:** limit-switch trigger. Over the following months I designed a trigger circuit with an electrical engineer mentor. A button acted as a limit switch: the motor wound until the platform pressed it at the bottom of its travel, then the code stopped the motor, blinked the lights, and reversed it to release the mechanism. Unlike the timed version, this one reacted to where the mechanism actually was. The circuit design worked, but testing revealed an electrical hardware problem we never fully diagnosed. My best guess is that the motor's power draw interfered with the trigger.
 
 **Version 2: limit-switch trigger.** Over the following months I designed a trigger circuit with an electrical engineer mentor. A button acted as a limit switch: the motor wound until the platform pressed the button at the bottom of its travel, and the code then stopped the motor, blinked the lights, and reversed it to release the mechanism. Unlike the timed version, this one reacted to where the mechanism actually was. The circuit design worked, but during testing an electrical hardware problem showed up that we never fully diagnosed. My best guess is that the motor's power draw interfered with the trigger.
 
