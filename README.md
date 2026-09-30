@@ -6,17 +6,17 @@ Software for TARS, a single-motor jumping robot built for NASA HUNCH (2025-2026)
 
 <!-- TODO: add a photo or GIF of TARS jumping here -->
 
-**[Jump straight to the autonomous sequence in the code](PASTE-YOUR-PERMALINK-HERE)**
+**[Jump straight to the autonomous sequence in the code]((https://github.com/seandhaverkamp77-gif/TARS-lunar-jumping-robot/blob/COMMIT-ID/main-source-code/main-source-code.ino#L356-L405))**
 
 ## Overview
 
-Astronauts on the lunar surface will need higher-resolution terrain data than the Lunar Reconnaissance Orbiter can provide (0.5 m/pixel). TARS is designed to be deployed by astronauts and jump to scout the surrounding terrain, using a spring-loaded mechanism (compressed carbon fiber rods) and an onboard camera. It was built as part of NASA's Artemis-era Moon to Mars initiative through HUNCH's Design and Prototype program.
+Astronauts on the lunar surface will need higher-resolution terrain data than the Lunar Reconnaissance Orbiter can provide (0.5 m/pixel). TARS is designed to be deployed by astronauts and jump to scout the surrounding terrain, using a spring-loaded mechanism (compressed carbon fiber rods) and an onboard camera. It was built for NASA's Artemis-era Moon to Mars initiative through HUNCH's Design and Prototype program.
 
 Built by a 4-person team at Green Mountain High School. TARS was invited to Johnson Space Center in Houston to present to NASA astronauts and engineers and defend its design in NASA-style design reviews.
 
 ## My Role
 
-Software lead. I was responsible for the onboard control system on the ESP32-CAM.
+Software lead. I was responsible for the onboard control system running on the ESP32-CAM.
 
 ## How the Jump Sequence Works
 
@@ -33,19 +33,31 @@ flowchart TD
     F -- Yes --> G[Motor off, sequence ends]
 ```
 
-It is a hardcoded, open-loop sequence: fixed timers, no sensor feedback. Once triggered, it runs with no operator input. The "forward" button on the control page starts it. That label is left over from the original robot-car example the code was adapted from.
+It is a hardcoded, open-loop sequence: fixed timers, no sensor feedback. Once triggered, it runs with no operator input.
+
+### Control page
+
+The robot is controlled from a browser page over Wi-Fi, with the live camera feed above the buttons:
+
+| Button | What it does on TARS |
+|--------|----------------------|
+| Forward | Starts the autonomous jump sequence (label left over from the original car example) |
+| Right | Winds the mechanism manually (hold to run) |
+| Left | Releases the mechanism's tension manually (hold to run) |
+| Stop | Turns the motor off |
 
 ## What's Mine vs. Adapted
 
-The camera streaming, web server, and browser control page come from the open-source ESP32-CAM robot car example by Random Nerd Tutorials. I adapted them for a single-motor robot.
+The camera streaming, web server, and browser control page come from the open-source [ESP32-CAM Remote Controlled Car Robot Web Server](https://randomnerdtutorials.com/esp32-cam-car-robot-web-server/) by Random Nerd Tutorials. I adapted them for a single-motor robot.
 
 My work:
 - Repurposed the "forward" command into the timed jump sequence
 - Wrote the wind / release / rest timing around the mechanism and the HUNCH inspection rule
-- Added NeoPixel status feedback (blinks before each release)
-- Integrated the code with the robot's mechanism and power system
+- Added NeoPixel status feedback (the lights blink before each release)
+- Repurposed the left and right buttons as manual wind and release controls
+- Debugged brownout resets under motor load and redesigned the trigger (see below)
 
-Motor 2 and the left / right / backward commands are inherited from the original 2-wheel car example. TARS has one motor, so they aren't used in the jump.
+Motor 2 is unused on TARS. Its pins and code are leftovers from the original 2-wheel car example.
 
 ## From Button to Hardcoded Sequence
 
@@ -60,6 +72,13 @@ With the competition deadline close, I replaced the trigger with a pre-programme
 - **"Stop" can't interrupt a running sequence.** The sequence uses `delay()`, which blocks the web server, so a stop command waits until it finishes. A future version could use `millis()`-based timing so a stop command can cut the motor.
 - **Open-loop.** The timing is fixed and doesn't react to sensors.
 - The sketch disables the ESP32 brownout detector. This hides voltage dips instead of fixing them.
+
+## Project Website
+
+Full engineering documentation for TARS (design iterations, testing, electronics) is on our team site:
+- [GMHS TARS project site](https://sites.google.com/jeffcoschools.us/gmhstars/home)
+- [Automated jump sequence and camera](https://sites.google.com/jeffcoschools.us/gmhstars/automated-jump-sequence-and-camera): how the control page and jump sequence work
+- [Release mechanism testing](https://sites.google.com/jeffcoschools.us/gmhstars/testing/release-mechanism-testing): 98 trials, 89.7% success rate (team testing)
 
 ## Tech Stack
 
